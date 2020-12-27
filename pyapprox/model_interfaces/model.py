@@ -51,6 +51,11 @@ class PyaModel(object):
         var_names: Optional[List[str]]
             name of parameters
         """
+        if var_names:
+            assert len(var_names) == len(variables) == len(variable_ranges)
+        else:
+            assert len(variables) == len(variable_ranges)
+
         self.variables = variables
         self.variable_ranges = variable_ranges
         self.target_model = target_model
