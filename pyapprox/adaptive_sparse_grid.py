@@ -55,8 +55,6 @@ def extract_items_from_priority_queue(pqueue):
     be destroyed. Return a copy of the original queue that can be used to 
     replace the destroyed queue
     """
-
-    #pqueue1 = queue.PriorityQueue()
     pqueue1 = mypriorityqueue()
     items = []
     while not pqueue.empty():
@@ -554,6 +552,7 @@ def convert_sparse_grid_to_polynomial_chaos_expansion(sparse_grid, pce_opts,
                                                       debug=False):
     from pyapprox.multivariate_polynomials import PolynomialChaosExpansion
     from pyapprox.manipulate_polynomials import add_polynomials
+
     pce = PolynomialChaosExpansion()
     pce.configure(pce_opts)
     if sparse_grid.config_variables_idx is not None:
@@ -639,9 +638,9 @@ class SubSpaceRefinementManager(object):
         self.verbose = 0
         self.num_vars = num_vars
         self.num_config_vars = 0
-        self.subspace_indices_dict = dict()
+        self.subspace_indices_dict = {}
         self.subspace_indices = np.zeros((self.num_vars, 0), dtype=int)
-        self.active_subspace_indices_dict = dict()
+        self.active_subspace_indices_dict = {}
         self.active_subspace_queue = mypriorityqueue()
         self.admissibility_function = None
         self.refinement_indicator = None
@@ -663,7 +662,7 @@ class SubSpaceRefinementManager(object):
         self.enforce_variable_ordering = False
 
     def initialize(self):
-        self.poly_indices_dict = dict()
+        self.poly_indices_dict = {}
         self.samples = np.zeros((self.num_vars, 0))
         self.add_new_subspaces(np.zeros((self.num_vars, 1), dtype=int))
         self.error = np.zeros((0))
@@ -946,7 +945,7 @@ class SubSpaceRefinementManager(object):
             canonical_samples)
         config_samples = self.map_config_samples_from_canonical_space(
             canonical_samples)
-        samples = np .vstack((random_samples, config_samples))
+        samples = np.vstack((random_samples, config_samples))
         values = self.function(samples)
 
         return values
