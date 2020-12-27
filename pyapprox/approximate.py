@@ -125,7 +125,7 @@ def adaptive_approximate_sparse_grid(
     config_variable_idx : integer
         The position in a sample array that the configure variables start
 
-    config_var_trans : pyapprox.adaptive_sparse_grid.ConfigureVariableTransformation
+    config_var_trans : pyapprox.variable_transformations.ConfigureVariableTransformation
         An object that takes configure indices in [0,1,2,3...] 
         and maps them to the configure values accepted by ``fun``
 
