@@ -375,3 +375,38 @@ class TransformationComposition(VariableTransformInterface):
                     canonical_samples)
 
         return canonical_samples
+
+
+class ConfigureVariableTransformation(VariableTransformInterface):
+    """
+    Class which maps one-to-one configure indices in [0, 1, 2, 3,...]
+    to a set of configure values accepted by a function
+
+    Parameters
+    ---------
+    nvars : integer
+        The number of configure variables
+
+    config_values : list
+        The list of configure values for each configure variable. Each entry
+        in the list is a 1D np.ndarray with potentiallly different sizes
+    """
+
+    def __init__(self, config_values):
+        self.nvars = len(config_values)
+        assert (type(config_values[0]) == list or
+                type(config_values[0]) == np.ndarray)
+        self.config_values = config_values
+
+    def map_from_canonical_space(self, canonical_samples):
+        """
+        Map a configure multi-dimensional index to the corresponding 
+        configure values
+        """
+        assert canonical_samples.shape[0] == self.nvars
+        samples = np.empty_like(canonical_samples)
+        for ii in range(samples.shape[1]):
+            for jj in range(self.nvars):
+                kk = canonical_samples[jj, ii]
+                samples[jj, ii] = self.config_values[jj][int(kk)]
+        return samples
