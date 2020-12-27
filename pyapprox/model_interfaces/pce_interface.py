@@ -21,7 +21,15 @@ def _sample(self, num_samples: int, sampler: Optional[Callable] = None):
 
 def sample_training(self, num_samples: int,
                     sampler: Optional[Callable] = None):
-    # self.training_samples = self._sample(num_samples, sampler)
+    """Create training samples.
+
+    Parameters
+    ----------
+    num_samples : int,
+        Number of samples to take
+    sampler : function, optional
+        NumPy-provided sampler to use. Defaults to `np.random.uniform`
+    """
     if not sampler:
         sampler = np.random.uniform
 
@@ -38,6 +46,17 @@ def sample_validation(self,
                       num_samples: int,
                       sampler: Optional[Callable] = None,
                       model_args: Optional[Dict] = None):
+    """Create validation samples.
+
+    Parameters
+    ----------
+    num_samples : int,
+        Number of samples to take
+    sampler : function, optional
+        NumPy-provided sampler to use. Defaults to `np.random.uniform`
+    model_args : Dict, optional
+        Additional arguments to pass to target model
+    """
     self.validation_samples = self._sample(num_samples, sampler)
 
     if not model_args:
@@ -56,7 +75,6 @@ def set_admissibility(self, max_admiss_func: Callable,
                       growth_rule,
                       max_level: Optional[np.float],
                       max_level_1d: Optional[List[np.float]] = None):
-
     if not max_level_1d:
         max_level_1d = [max_level]*(self.nvars)
 
@@ -103,6 +121,7 @@ def build(self, callback: Callable):
 
 
 def plot_error_decay(self):
+    """Display training results in terms of error decay."""
     import matplotlib.pyplot as plt
 
     plt.figure()
@@ -155,6 +174,7 @@ def define_pce(model: PyaModel, approach: Callable,
     if 'candidate_samples' in approach_args:
         if not hasattr(model, 'training_samples'):
             model.sample_training(num_samples)
+
         kwargs['candidate_samples'] = model.training_samples
 
     poly = approach(**kwargs)
