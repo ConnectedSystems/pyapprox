@@ -94,6 +94,9 @@ def variables_equivalent(rv1, rv2):
 
 def get_unique_variables(variables):
     nvars = len(variables)
+    if nvars == 0:
+        raise ValueError("No variables defined.")
+
     unique_variables = [variables[0]]
     unique_var_indices = [[0]]
     for ii in range(1, nvars):
