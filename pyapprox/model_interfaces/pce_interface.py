@@ -25,7 +25,7 @@ def sample_training(self, num_samples: int,
     if not sampler:
         sampler = np.random.uniform
 
-    var_ranges = np.array([(x[0], x[1]) for x in self.variable_ranges])
+    var_ranges = np.array(self.variable_ranges)
 
     self.training_samples = sampler(low=var_ranges[:, 0],
                                     high=var_ranges[:, 1],
