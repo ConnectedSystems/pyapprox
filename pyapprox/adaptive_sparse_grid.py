@@ -1,23 +1,21 @@
-from pyapprox.variables import variable_shapes_equivalent
-from pyapprox.univariate_quadrature import gaussian_leja_quadrature_rule,\
-    get_univariate_leja_quadrature_rule
-from pyapprox.univariate_quadrature import leja_growth_rule, \
-    constant_increment_growth_rule
-from pyapprox.sparse_grid import *
-from pyapprox.models.wrappers import WorkTracker
 import copy
-from pyapprox.utilities import lists_of_lists_of_arrays_equal, \
-    lists_of_arrays_equal, partial_functions_equal
-import pickle
-from pyapprox.indexing import get_forward_neighbor, get_backward_neighbor
 from functools import partial
-# try:
-#     # Python version < 3
-#     import Queue as queue
-# except:
-#     import queue
-
+import pickle
 import heapq
+
+from .variables import variable_shapes_equivalent
+from .univariate_quadrature import (gaussian_leja_quadrature_rule,
+                                    get_univariate_leja_quadrature_rule, 
+                                    leja_growth_rule,
+                                    constant_increment_growth_rule)
+from .sparse_grid import *
+from .indexing import get_forward_neighbor, get_backward_neighbor
+
+from .models.wrappers import WorkTracker
+from .utilities import (lists_of_lists_of_arrays_equal,
+                        lists_of_arrays_equal, 
+                        partial_functions_equal)
+from .variable_transformations import ConfigureVariableTransformation
 
 
 class mypriorityqueue():
