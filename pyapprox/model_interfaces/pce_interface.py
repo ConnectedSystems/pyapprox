@@ -12,7 +12,7 @@ from pyapprox.model_interfaces.model import PyaModel
 import numpy as np
 
 
-def _sample(self, num_samples: int, sampler: Optional[Callable] = None):
+def sample(self, num_samples: int, sampler: Optional[Callable] = None):
     if not sampler:
         sampler = pya.generate_independent_random_samples
 
@@ -57,7 +57,7 @@ def sample_validation(self,
     model_args : Dict, optional
         Additional arguments to pass to target model
     """
-    self.validation_samples = self._sample(num_samples, sampler)
+    self.validation_samples = self.sample(num_samples, sampler)
 
     if not model_args:
         model_args = {}
