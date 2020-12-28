@@ -127,9 +127,30 @@ def plot_error_decay(self):
     plt.figure()
     plt.loglog(self.build_samples, self.build_errors, 'o-')
     plt.show()
-
     # Could return axes objects here...
 
+
+def plot_performance(self, 
+                     y: np.ndarray, 
+                     y_hat: np.ndarray,
+                     log: Optional[bool] = False):
+    """Display emulator performance."""
+    import matplotlib.pyplot as plt
+
+    plt.figure()
+    plt.scatter(y, y_hat)
+
+    ax = plt.gca()
+
+    if log:
+        ax.set_yscale('log')
+        ax.set_xscale('log')
+    
+    ax.set_xlabel('$y$')
+    ax.set_ylabel('$\hat{y}$')
+
+    plt.show()
+    
 
 def define_pce(model: PyaModel, approach: Callable,
                transform_approach: Callable,
