@@ -171,10 +171,11 @@ def define_pce(model: PyaModel, approach: Callable,
         kwargs['num_vars'] = model.nvars
     if 'nvars' in approach_args:
         kwargs['nvars'] = model.nvars
-    if 'candidate_samples' in approach_args:
-        if not hasattr(model, 'training_samples'):
-            model.sample_training(num_samples)
 
+    # Create initial training data
+    model.sample_training(num_samples)
+
+    if 'candidate_samples' in approach_args:
         kwargs['candidate_samples'] = model.training_samples
 
     poly = approach(**kwargs)
