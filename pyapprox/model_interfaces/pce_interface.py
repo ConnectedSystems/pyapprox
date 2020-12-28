@@ -113,7 +113,7 @@ def override_build_function(self, fun: Callable):
     return self
 
 
-def build(self, callback: Callable):
+def build(self, callback: Optional[Callable] = None):
     """Default build method."""
     self.pce.build(callback)
 
