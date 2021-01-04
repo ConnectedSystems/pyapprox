@@ -13,59 +13,11 @@ import numpy as np
 
 
 def sample(self, num_samples: int, sampler: Optional[Callable] = None):
+    """Custom sampler method for PCE methods."""
     if not sampler:
         sampler = pya.generate_independent_random_samples
 
     return sampler(self.var_trans.variable, num_samples)
-
-
-def sample_training(self, num_samples: int,
-                    sampler: Optional[Callable] = None):
-    """Create training samples.
-
-    Parameters
-    ----------
-    num_samples : int,
-        Number of samples to take
-    sampler : function, optional
-        NumPy-provided sampler to use. Defaults to `np.random.uniform`
-    """
-    if not sampler:
-        sampler = np.random.uniform
-
-    var_ranges = np.array(self.variable_ranges)
-
-    self.training_samples = sampler(low=var_ranges[:, 0],
-                                    high=var_ranges[:, 1],
-                                    size=(num_samples, self.nvars)).T
-
-    return self
-
-
-def sample_validation(self,
-                      num_samples: int,
-                      sampler: Optional[Callable] = None,
-                      model_args: Optional[Dict] = None):
-    """Create validation samples.
-
-    Parameters
-    ----------
-    num_samples : int,
-        Number of samples to take
-    sampler : function, optional
-        NumPy-provided sampler to use. Defaults to `np.random.uniform`
-    model_args : Dict, optional
-        Additional arguments to pass to target model
-    """
-    self.validation_samples = self.sample(num_samples, sampler)
-
-    if not model_args:
-        model_args = {}
-
-    self.validation_results = self.run_model(
-        self.validation_samples, **model_args)
-
-    return self
 
 
 def set_admissibility(self, max_admiss_func: Callable,
@@ -93,29 +45,42 @@ def set_admissibility(self, max_admiss_func: Callable,
     if not variance_refinement_func:
         variance_refinement_func = pya.variance_pce_refinement_indicator
 
-    self.pce.set_refinement_functions(variance_refinement_func,
+    self.model.set_refinement_functions(variance_refinement_func,
                                       admissibility_func,
                                       growth_rule)
 
     return self
 
 
-def override_build_function(self, fun: Callable):
-    """Overrides build method with provided function.
+def build(self, admissibility: Dict,
+          callback: Optional[Callable] = None, **kwargs):
+    """Default PCE build method.
 
     Parameters
     ----------
-    fun : function,
-        Build function to use instead of the default approach.
+    admissibility: Dict,
+        admissibility_options
+    callback: function, optional
+        Additional function to call
     """
-    self.build = MethodType(fun, self)
+    approach = self._approach
 
-    return self
+    # Handle common args
+    approach_args = get_arg_names(approach)
+    if 'num_vars' in approach_args:
+        kwargs['num_vars'] = self.nvars
+    if 'nvars' in approach_args:
+        kwargs['nvars'] = self.nvars
+    if 'candidate_samples' in approach_args:
+        kwargs['candidate_samples'] = self.training_samples
 
+    poly = approach(**kwargs)
+    poly.set_function(self.target_model, self.var_trans)
+    self.model = poly
 
-def build(self, callback: Optional[Callable] = None):
-    """Default build method."""
-    self.pce.build(callback)
+    self.set_admissibility(**admissibility)
+    
+    self.model.build(callback)
 
     return self
 
@@ -128,33 +93,10 @@ def plot_error_decay(self):
     plt.loglog(self.build_samples, self.build_errors, 'o-')
     plt.show()
     # Could return axes objects here...
-
-
-def plot_performance(self, 
-                     y: np.ndarray, 
-                     y_hat: np.ndarray,
-                     log: Optional[bool] = False):
-    """Display emulator performance."""
-    import matplotlib.pyplot as plt
-
-    plt.figure()
-    plt.scatter(y, y_hat)
-
-    ax = plt.gca()
-
-    if log:
-        ax.set_yscale('log')
-        ax.set_xscale('log')
-    
-    ax.set_xlabel('$y$')
-    ax.set_ylabel('$\hat{y}$')
-
-    plt.show()
     
 
 def define_pce(model: PyaModel, approach: Callable,
                transform_approach: Callable,
-               num_samples: int,
                **kwargs):
     """
     Define the Polynomial Chaos Expansion method to use.
@@ -165,50 +107,14 @@ def define_pce(model: PyaModel, approach: Callable,
         PCE method constructor
     transform_approach: function,
         variable transform method
-    num_samples : int,
-        number of initial training/candidate samples
     kwargs : Dict,
         additional keyword arguments to pass on to the PCE method
         constructor
     """
-    from inspect import getmembers, isfunction
-    import importlib
+    model._attach_approach_methods(__name__)
+    model.variables = pya.IndependentMultivariateRandomVariable(model.variables)
+    model.var_trans = transform_approach(model.variables)
 
-    def is_function_local(object):
-        return isinstance(object, FunctionType) and object.__module__ == __name__
-
-    # Attach PCE interface methods
-    mod = importlib.import_module(__name__)
-    funcs = getmembers(mod, is_function_local)
-    for n, f in funcs:
-        setattr(model, n, MethodType(f, model))
-
-    # Remove this constructor method
-    del model.define_pce
-
-    # Handle common args
-    approach_args = get_arg_names(approach)
-    if 'num_vars' in approach_args:
-        kwargs['num_vars'] = model.nvars
-    if 'nvars' in approach_args:
-        kwargs['nvars'] = model.nvars
-
-    # Create initial training data
-    model.sample_training(num_samples)
-
-    if 'candidate_samples' in approach_args:
-        kwargs['candidate_samples'] = model.training_samples
-
-    poly = approach(**kwargs)
-    variables = pya.IndependentMultivariateRandomVariable(model.variables)
-    model.var_trans = transform_approach(variables)
-
-    try:
-        poly.set_function(model.target_model, model.var_trans)
-    except AttributeError:
-        raise AttributeError(
-            "Defining poly options failed: must define variables first.")
-
-    model.pce = poly
+    model._approach = approach
 
     return model
