@@ -16,11 +16,11 @@ def halton_sequence(num_vars, index1, index2):
         print('halton_sequence extension failed')
         pass
 
-    return __halton_sequence(num_vars, index1, index2)
+    return __halton_sequence(num_vars, primes, index1, index2)
 
 
 @njit(cache=True)
-def __halton_sequence(num_vars, index1, index2):
+def __halton_sequence(num_vars, primes, index1, index2):
     num_samples = index2-index1
     sequence = np.zeros((num_vars, num_samples))
     ones = np.ones(num_vars)
