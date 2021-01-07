@@ -147,7 +147,6 @@ class PyaModel(object):
             # sampler = pya.generate_independent_random_samples
 
         var_ranges = np.array(self.variable_ranges)
-
         self.training_samples = sampler(low=var_ranges[:, 0],
                                         high=var_ranges[:, 1],
                                         size=(num_samples, self.nvars)).T

@@ -9,7 +9,7 @@ import numpy as np
 
 
 def build(self, **kwargs):
-    """Build method for `approximate` approaches.
+    """Generate emulator using `approximate` approaches.
 
     Parameters
     ----------

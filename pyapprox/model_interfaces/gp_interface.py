@@ -9,12 +9,6 @@ import pyapprox as pya
 from pyapprox.model_interfaces.model import PyaModel
 
 
-def sample(self, num_samples: int, sampler: Callable):
-    """Custom sampler for GP methods.
-    """
-    return sampler(num_samples)
-
-
 def set_sampler(self, num_samples: int, kernel: Callable, sampler: Callable):
     """Set sampler for Gaussian Process.
 
@@ -44,13 +38,16 @@ def sample_training(self,
     num_samples : int,
         Number of samples to take
     """
-    self.training_samples, _ = self.sampler(num_samples)
+    try:
+        self.training_samples, _ = self.sample(num_samples, self.sampler)
+    except AttributeError:
+        raise AttributeError("Sampler must be set first!")
 
     return self
 
 
 def build(self, samples: int, **kwargs):
-    """Build method for `approximate` approaches.
+    """Generate emulator using Gaussian Process approaches.
 
     Parameters
     ----------
@@ -63,7 +60,23 @@ def build(self, samples: int, **kwargs):
     if not hasattr(self, 'sampler'):
         raise AttributeError("Must create training samples first.")
 
-    self.model = self._approach(self.sampler, self.target_model, **kwargs)
+    if self.is_sklearn_gp:
+        # Handle methods which inherit from sklearn
+        self.model = self._approach(kernel=self.sampler.kernel, **kwargs)
+
+        try:
+            self.model.setup(self.target_model, self.sampler)
+        except AttributeError as e:
+            if 'setup' in str(e):
+                # Given method doesn't have a setup() defined
+                pass
+            else:
+                raise AttributeError(e)
+        
+
+    else:
+        self.model = self._approach(self.sampler, self.target_model, **kwargs)
+
     self.model.refine(samples)
 
     return self
@@ -86,5 +99,14 @@ def define_gp(model: PyaModel, approach: Callable):
     model.variables = pya.IndependentMultivariateRandomVariable(model.variables)
 
     model._approach = approach
+
+    # For compatibility with sklearn-based methods
+    import inspect
+    classes = inspect.getmro(model._approach)
+    model.is_sklearn_gp = False
+    for cls_i in classes:
+        if 'GaussianProcessRegressor' in cls_i.__name__:
+            model.is_sklearn_gp = True
+            break
 
     return model

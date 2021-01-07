@@ -54,7 +54,7 @@ def set_admissibility(self, max_admiss_func: Callable,
 
 def build(self, admissibility: Dict,
           callback: Optional[Callable] = None, **kwargs):
-    """Default PCE build method.
+    """Generate emulator using PCE approaches.
 
     Parameters
     ----------
