@@ -118,9 +118,46 @@ def vectorize_1darray_on_2d_array(function):
     ----------
     Python function
     """
+
     def wrapped_func(arr, *args, **kwargs):
-        rows = arr.T.shape[0]
-        return np.apply_along_axis(function, 0, arr, *args, **kwargs).reshape(rows, -1)
+
+        assert arr.ndim == 2
+        arr = arr.T
+
+        if not hasattr(wrapped_func, "num_qoi"):
+
+            # Determine result shape
+            values_0 = function(arr[0], *args, **kwargs)
+            values_0 = np.atleast_1d(values_0)
+            assert values_0.ndim == 1
+
+            num_samples = arr.shape[0]
+
+            try:
+                num_qoi = values_0.shape[1]
+            except IndexError:
+                num_qoi = values_0.shape[0]
+
+            wrapped_func.num_qoi = num_qoi
+
+            results = np.empty((num_samples, num_qoi))
+            results[0] = values_0
+
+            if num_samples == 1:
+                return results
+
+            for idx, x in enumerate(arr[1:]):
+                results[idx+1] = function(x, *args, *kwargs)
+
+            return results
+        
+        num_qoi = wrapped_func.num_qoi
+        results = np.empty((arr.shape[0], num_qoi))
+        for idx, x in enumerate(arr):
+            results[idx] = function(x, *args, *kwargs)
+            
+
+        return results
 
     return wrapped_func
 
