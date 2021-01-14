@@ -72,8 +72,6 @@ def build(self, samples: int, **kwargs):
                 pass
             else:
                 raise AttributeError(e)
-        
-
     else:
         self.model = self._approach(self.sampler, self.target_model, **kwargs)
 

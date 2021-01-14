@@ -5,11 +5,11 @@ from functools import partial
 from dataclasses import dataclass
 from types import MethodType, FunctionType
 
+import numpy as np
+
 import pyapprox as pya
 from pyapprox.models.wrappers import get_arg_names
 from pyapprox.model_interfaces.model import PyaModel
-
-import numpy as np
 
 
 def sample(self, num_samples: int, sampler: Optional[Callable] = None):
