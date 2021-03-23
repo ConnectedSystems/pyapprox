@@ -150,7 +150,7 @@ def max_level_admissibility_function(max_level, max_level_1d,
             else:
                 print(subspace_index)
                 msg = 'Accuracy misleadingly appears reached because '
-                msg += 'admissibility  criterion is preventing new subspaces '
+                msg += 'admissibility criterion is preventing new subspaces '
                 msg += 'from being added to the active set'
                 print(msg)
             return False
