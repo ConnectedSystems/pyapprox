@@ -115,7 +115,7 @@ pce.set_refinement_functions(
 #
 #which is the square-root of the Christoffel function.
 #
-#Note univaraite weighted Leja sequence were intially developed setting :math:`v(\V{\rv})=\sqrt{\rho(\V{\rv}}` to be the square-root of the joint probability density of the random variables [NJ2014]_. However using the Christoffel function typically produces more well-conditioned Leja sequences and requires no explicit knowldege of the joint PDF.
+#Note univariate weighted Leja sequence were intially developed setting :math:`v(\V{\rv})=\sqrt{\rho(\V{\rv}}` to be the square-root of the joint probability density of the random variables [NJ2014]_. However using the Christoffel function typically produces more well-conditioned Leja sequences and requires no explicit knowldege of the joint PDF.
 #
 #In multiple dimensions, formulating a generalization of the univariate procedure is challenging. The following linear algebra formulation greedily maximizes the weighted Vandermonde-like determinant
 #
