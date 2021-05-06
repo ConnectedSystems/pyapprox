@@ -250,3 +250,37 @@ def halton_sequence_pyx(int64_t[:] primes, int_t index1, int_t index2):
                 summand += ff[jj]
         kk+=1
     return sequence
+
+
+cdef swap_rows(np.ndarray matrix, Py_ssize_t ii, Py_ssize_t jj):
+    matrix[ii], matrix[jj] = matrix[jj], matrix[ii]
+
+
+def create_new_columns(np.ndarray LU_factor, np.ndarray new_cols, np.ndarray raw_pivots):
+    cdef Py_ssize_t num_pivots = raw_pivots.shape[0]
+    cdef Py_ssize_t next_idx
+
+    for it, pivot in enumerate(raw_pivots):
+        swap_rows(new_cols, it, pivot)
+
+        # update U_factor
+        # recover state of col vector from permuted LU factor
+        # Let  (jj,kk) represent iteration and pivot pairs
+        # then if lu factorization produced sequence of pairs
+        # (0,4),(1,2),(2,4) then LU_factor[:,0] here will be col_vector
+        # in LU algorithm with the second and third permutations
+        # so undo these permutations in reverse order
+        next_idx = it+1
+        col_vector = np.array(LU_factor[next_idx:, it])
+        for ii in range(num_pivots-it-1):
+            # (it+1) necessary in two lines below because only dealing
+            # with compressed col vector which starts at row it in LU_factor
+            jj = raw_pivots[num_pivots-1-ii]-next_idx
+            kk = num_pivots-ii-1-next_idx
+
+            # inlined swap_rows()
+            swap_rows(col_vector, jj, kk)
+
+        new_cols[next_idx:, :] -= np.outer(col_vector, new_cols[it, :])
+
+    return new_cols

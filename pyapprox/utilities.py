@@ -832,7 +832,7 @@ def truncated_pivoted_lu_factorization(A, max_iters, num_initial_rows=0,
         U_factor = U_factor[:it+1, :it+1]
         return L_factor, U_factor, pivots
 
-
+from .cython.utilities import create_new_columns
 def add_columns_to_pivoted_lu_factorization(LU_factor, new_cols, raw_pivots):
     r"""
     Given factorization PA=LU add new columns to A in unpermuted order and 
@@ -847,36 +847,55 @@ def add_columns_to_pivoted_lu_factorization(LU_factor, new_cols, raw_pivots):
     """
     assert LU_factor.shape[0] == new_cols.shape[0]
     assert raw_pivots.shape[0] <= new_cols.shape[0]
-    num_pivots = raw_pivots.shape[0]
-    for it, pivot in enumerate(raw_pivots):
-        # inlined swap_rows() for performance
-        new_cols[it], new_cols[pivot] = new_cols[pivot], new_cols[it]
-
-        # update U_factor
-        # recover state of col vector from permuted LU factor
-        # Let  (jj,kk) represent iteration and pivot pairs
-        # then if lu factorization produced sequence of pairs
-        # (0,4),(1,2),(2,4) then LU_factor[:,0] here will be col_vector
-        # in LU algorithm with the second and third permutations
-        # so undo these permutations in reverse order
-        next_idx = it+1
-        col_vector = np.array(LU_factor[next_idx:, it])
-        for ii in range(num_pivots-it-1):
-            # (it+1) necessary in two lines below because only dealing
-            # with compressed col vector which starts at row it in LU_factor
-            jj = raw_pivots[num_pivots-1-ii]-next_idx
-            kk = num_pivots-ii-1-next_idx
-
-            # inlined swap_rows()
-            col_vector[jj], col_vector[kk] = col_vector[kk], col_vector[jj]
-
-        new_cols[next_idx:, :] -= np.outer(col_vector, new_cols[it, :])
-
-        # new_cols = add_rows_to_pivoted_lu_factorization(
-        #    new_cols[:it+1,:],new_cols[it+1:,:],num_pivots)
+    new_cols = create_new_columns(LU_factor, new_cols, raw_pivots)
 
     LU_factor = np.hstack((LU_factor, new_cols))
     return LU_factor
+
+# def add_columns_to_pivoted_lu_factorization(LU_factor, new_cols, raw_pivots):
+#     r"""
+#     Given factorization PA=LU add new columns to A in unpermuted order and 
+#     update LU factorization
+
+#     Parameters
+#     ----------
+#     raw_pivots : np.ndarray (num_pivots)
+#         The pivots applied at each iteration of pivoted LU factorization.
+#         If desired one can use get_final_pivots_from_sequential_pivots to 
+#         compute final position of rows after all pivots have been applied.
+#     """
+#     assert LU_factor.shape[0] == new_cols.shape[0]
+#     assert raw_pivots.shape[0] <= new_cols.shape[0]
+#     num_pivots = raw_pivots.shape[0]
+#     for it, pivot in enumerate(raw_pivots):
+#         # inlined swap_rows() for performance
+#         new_cols[it], new_cols[pivot] = new_cols[pivot], new_cols[it]
+
+#         # update U_factor
+#         # recover state of col vector from permuted LU factor
+#         # Let  (jj,kk) represent iteration and pivot pairs
+#         # then if lu factorization produced sequence of pairs
+#         # (0,4),(1,2),(2,4) then LU_factor[:,0] here will be col_vector
+#         # in LU algorithm with the second and third permutations
+#         # so undo these permutations in reverse order
+#         next_idx = it+1
+#         col_vector = np.array(LU_factor[next_idx:, it])
+#         for ii in range(num_pivots-it-1):
+#             # (it+1) necessary in two lines below because only dealing
+#             # with compressed col vector which starts at row it in LU_factor
+#             jj = raw_pivots[num_pivots-1-ii]-next_idx
+#             kk = num_pivots-ii-1-next_idx
+
+#             # inlined swap_rows()
+#             col_vector[jj], col_vector[kk] = col_vector[kk], col_vector[jj]
+
+#         new_cols[next_idx:, :] -= np.outer(col_vector, new_cols[it, :])
+
+#         # new_cols = add_rows_to_pivoted_lu_factorization(
+#         #    new_cols[:it+1,:],new_cols[it+1:,:],num_pivots)
+
+#     LU_factor = np.hstack((LU_factor, new_cols))
+#     return LU_factor
 
 
 def add_rows_to_pivoted_lu_factorization(LU_factor, new_rows, num_pivots):
