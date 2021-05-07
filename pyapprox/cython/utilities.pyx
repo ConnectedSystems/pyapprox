@@ -254,12 +254,14 @@ def halton_sequence_pyx(int64_t[:] primes, int_t index1, int_t index2):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.nonecheck(False)
 cdef swap_rows(np.ndarray matrix, Py_ssize_t ii, Py_ssize_t jj):
     matrix[ii], matrix[jj] = matrix[jj], matrix[ii]
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
+@cython.nonecheck(False)
 cpdef create_new_columns(np.ndarray[double, ndim=2] LU_factor, np.ndarray[double, ndim=2] new_cols, np.ndarray[int_t] raw_pivots):
     cdef:
         Py_ssize_t num_pivots = raw_pivots.shape[0]
