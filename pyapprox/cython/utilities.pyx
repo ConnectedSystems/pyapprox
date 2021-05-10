@@ -291,3 +291,36 @@ cpdef create_new_columns(np.ndarray[double, ndim=2] LU_factor, np.ndarray[double
         new_cols[next_idx:, :] -= np.outer(col_vector, new_cols[it, :])
 
     return new_cols
+
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+@cython.cdivision(True)
+cpdef unprecondition_LU_factor(np.ndarray[double, ndim=2] LU_factor, np.ndarray[double, ndim=2] precond_weights, object num_pivots=None):
+    r"""
+    A=LU and WA=XY
+    Then WLU=XY
+    We also know Y=WU
+    So WLU=XWU => WL=XW so L=inv(W)*X*W
+    and U = inv(W)Y
+    """
+    cdef Py_ssize_t ii, n_pivots
+
+    if num_pivots is None:
+        n_pivots = np.min(LU_factor.shape[0], LU_factor.shape[1])
+    else:
+        n_pivots = num_pivots
+
+    assert precond_weights.shape[1] == 1
+    assert precond_weights.shape[0] == LU_factor.shape[0]
+    # left multiply L an U by inv(W), i.e. compute inv(W).dot(L)
+    # and inv(W).dot(U)
+    LU_factor = np.array(LU_factor)/precond_weights
+
+    # right multiply L by W, i.e. compute L.dot(W)
+    # Do not overwrite columns past num_pivots. If not all pivots have been
+    # performed the columns to the right of this point contain U factor
+    for ii in range(num_pivots):
+        LU_factor[ii+1:, ii] *= precond_weights[ii, 0]
+
+    return LU_factor

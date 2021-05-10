@@ -9,7 +9,7 @@ from scipy.linalg import solve_triangular
 from numba import njit
 
 from .sys_utilities import hash_array
-from .cython.utilities import create_new_columns
+from .cython.utilities import create_new_columns, unprecondition_LU_factor
 
 
 def sub2ind(sizes, multi_index):
@@ -715,31 +715,6 @@ def continue_pivoted_lu_factorization(LU_factor, raw_pivots, current_iter,
         update = np.outer(col_vector, row_vector)
         LU_factor[it+1:, it+1:] -= update
     return LU_factor, raw_pivots, it
-
-
-def unprecondition_LU_factor(LU_factor, precond_weights, num_pivots=None):
-    r"""
-    A=LU and WA=XY
-    Then WLU=XY
-    We also know Y=WU
-    So WLU=XWU => WL=XW so L=inv(W)*X*W
-    and U = inv(W)Y
-    """
-    if num_pivots is None:
-        num_pivots = np.min(LU_factor.shape)
-    assert precond_weights.shape[1] == 1
-    assert precond_weights.shape[0] == LU_factor.shape[0]
-    # left multiply L an U by inv(W), i.e. compute inv(W).dot(L)
-    # and inv(W).dot(U)
-    LU_factor = np.array(LU_factor)/precond_weights
-
-    # right multiply L by W, i.e. compute L.dot(W)
-    # Do not overwrite columns past num_pivots. If not all pivots have been
-    # performed the columns to the right of this point contain U factor
-    for ii in range(num_pivots):
-        LU_factor[ii+1:, ii] *= precond_weights[ii, 0]
-
-    return LU_factor
 
 
 def split_lu_factorization_matrix(LU_factor, num_pivots=None):
