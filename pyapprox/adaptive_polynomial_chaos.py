@@ -360,10 +360,10 @@ class AdaptiveLejaPCE(AdaptiveInducedPCE):
         it = self.poly_indices.shape[1]
         max_iters = self.poly_indices.shape[1]
         self.LU_factor, self.seq_pivots, it = continue_pivoted_lu_factorization(
-            self.LU_factor.copy(), self.seq_pivots, self.samples.shape[1],
+            np.array(self.LU_factor), self.seq_pivots, self.samples.shape[1],
             max_iters, num_initial_rows=0)
         self.pivots = get_final_pivots_from_sequential_pivots(
-            self.seq_pivots.copy())[:max_iters]
+            np.array(self.seq_pivots))[:max_iters]
 
         self.pce.set_indices(self.poly_indices)
         return self.candidate_samples[
