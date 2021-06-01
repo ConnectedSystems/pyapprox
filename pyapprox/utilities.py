@@ -793,6 +793,7 @@ def truncated_pivoted_lu_factorization(A, max_iters, num_initial_rows=0,
 
     # Use L to store both L and U during factoriation then copy out U in post
     # processing
+    # `np.array` creates a new copy of A (faster than `.copy()`)
     LU_factor = np.array(A)
     raw_pivots = np.arange(num_rows)
     LU_factor, raw_pivots, it = continue_pivoted_lu_factorization(
@@ -831,7 +832,7 @@ def add_columns_to_pivoted_lu_factorization(LU_factor, new_cols, raw_pivots):
 
 def add_rows_to_pivoted_lu_factorization(LU_factor, new_rows, num_pivots):
     assert LU_factor.shape[1] == new_rows.shape[1]
-    LU_factor_extra = np.array(new_rows)
+    LU_factor_extra = np.array(new_rows)  # take copy of `new_rows`
     for it in range(num_pivots):
         LU_factor_extra[:, it] /= LU_factor[it, it]
         col_vector = LU_factor_extra[:, it]
